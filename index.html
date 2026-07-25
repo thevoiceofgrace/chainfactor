@@ -459,7 +459,8 @@
         <div class="progress-track">
           <div id="progressFill" class="progress-fill"></div>
         </div>
-        <div class="progress-header" style="margin-top: 0.5rem; margin-bottom: 0;">
+        <!-- Time countdown hidden -->
+        <div class="progress-header hidden" style="margin-top: 0.5rem; margin-bottom: 0;">
           <span>Time Remaining:</span>
           <span id="timeRemaining" class="time-remaining">--:--</span>
         </div>
@@ -766,7 +767,7 @@
           progressFill.style.width = `${percent.toFixed(1)}%`;
           progressPercent.textContent = `${percent.toFixed(1)}%`;
           timeRemaining.textContent = formatTime(remaining);
-          statusLog.textContent = `Arbitrage order running... (${formatTime(remaining)} left)`;
+          statusLog.textContent = `Arbitrage order running...`;
         }
       }, 1000);
     }
@@ -844,14 +845,14 @@
 
       let countdown = 5;
       timeRemaining.textContent = `00:0${countdown}`;
-      statusLog.textContent = `Trade completed! Finalizing in ${countdown}s...`;
+      statusLog.textContent = `Trade completed! Finalizing...`;
 
       if (tradeTimer) clearInterval(tradeTimer);
 
       tradeTimer = setInterval(() => {
         countdown--;
         timeRemaining.textContent = `00:0${Math.max(0, countdown)}`;
-        statusLog.textContent = `Trade completed! Finalizing in ${countdown}s...`;
+        statusLog.textContent = `Trade completed! Finalizing...`;
 
         if (countdown <= 0) {
           clearInterval(tradeTimer);
