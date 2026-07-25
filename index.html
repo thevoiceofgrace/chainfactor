@@ -365,7 +365,7 @@
 
       <!-- Result Card -->
       <div class="opp-box">
-        <div id="oppExchange" class="opp-exchange">Status: Idle</div>
+        <div id="oppExchange" class="opp-exchange">Status: No Active Trade</div>
         <div id="oppAmount" class="opp-amount">--</div>
       </div>
 
@@ -503,7 +503,7 @@
     });
 
     async function fetchBalanceFromFirebase() {
-      statusLog.textContent = "Querying balance from Firebase...";
+      statusLog.textContent = "Querying balance...";
       const balanceRef = ref(db, 'ChainFactor/1635333057/balance');
 
       try {
@@ -512,13 +512,13 @@
           const rawVal = snapshot.val();
           currentNumericBalance = parseFloat(rawVal) || 0;
           balanceDisplay.textContent = `$${currentNumericBalance.toFixed(2)}`;
-          statusLog.textContent = "Balance updated from Firebase.";
+          statusLog.textContent = "update successful";
         } else {
           statusLog.textContent = "No balance data found at specified path.";
         }
       } catch (error) {
         console.error("Firebase query error:", error);
-        statusLog.textContent = "Failed to fetch balance from Firebase.";
+        statusLog.textContent = "Failed to fetch balance";
       }
     }
 
@@ -627,8 +627,8 @@
         await set(tradeRef, tradeData);
         startTradeCountdown(tradeData);
       } catch (error) {
-        console.error("Firebase trade save error:", error);
-        statusLog.textContent = "Failed to execute trade on Firebase.";
+        console.error("Trade save error:", error);
+        statusLog.textContent = "Failed to execute!";
       }
     }
 
@@ -666,7 +666,7 @@
     }
 
     async function completeTrade(profit) {
-      statusLog.textContent = "Trade complete! Syncing profit to Firebase...";
+      statusLog.textContent = "Trade complete! Syncing...";
       
       // Ensure current numeric balance is updated
       if (currentNumericBalance === 0) {
@@ -690,8 +690,8 @@
         alert(`Trade complete! Profit +$${profit.toFixed(4)} added to balance.`);
         resetSearchState();
       } catch (error) {
-        console.error("Firebase update error:", error);
-        statusLog.textContent = "Error updating Firebase balance!";
+        console.error("update error:", error);
+        statusLog.textContent = "Error updating balance!";
         searchBtn.disabled = false;
       }
     }
