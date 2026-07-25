@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ChainFactor Version X</title>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-dark: #080911;
+      --card-bg: rgba(18, 22, 40, 0.65);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-primary: #00f2fe;
+      --accent-secondary: #4facfe;
+      --accent-glow: rgba(0, 242, 254, 0.35);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --danger: #ff4b4b;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(120, 119, 198, 0.12) 0%, transparent 40%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #00f2fe, #4facfe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .top-middle-balance {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.4rem 0.9rem;
+      border-radius: 50px;
+      border: 1px solid var(--card-border);
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .balance-val {
+      color: var(--accent-primary);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .btn-connect {
+      background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+      color: #000;
+      font-weight: 700;
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px var(--accent-glow);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-connect:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0, 242, 254, 0.5);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.2rem 0.8rem;
+    }
+
+    .trading-widget {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 1.8rem 1.2rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+    }
+
+    .widget-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .widget-subtitle {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Animation Area */
+    .radar-box {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 1.2rem;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .radar-icon {
+      font-size: 2.2rem;
+      color: var(--accent-primary);
+      z-index: 2;
+    }
+
+    .radar-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid var(--accent-primary);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .searching .radar-ring {
+      animation: pulse 1.8s infinite ease-out;
+    }
+
+    .searching .radar-ring:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .searching .radar-ring:nth-child(3) {
+      animation-delay: 1.2s;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.3);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(1.3);
+        opacity: 0;
+      }
+    }
+
+    /* Opportunity Result Box */
+    .opp-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed var(--card-border);
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 1.2rem;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .opp-exchange {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .opp-amount {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--success);
+    }
+
+    /* Progress Bar Container */
+    .progress-container {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 0.8rem;
+      border: 1px solid var(--card-border);
+      margin-bottom: 1.2rem;
+      text-align: left;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+      border-radius: 10px;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .time-remaining {
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+
+    /* Action Buttons */
+    .actions {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 0.85rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-search {
+      background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+      color: #000;
+    }
+
+    .btn-execute {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+    }
+
+    .btn-cancel {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-cancel:hover {
+      background: rgba(255, 75, 75, 0.2);
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    /* Logs / Status */
+    .status-text {
+      font-size: 0.8rem;
+      color: var(--accent-primary);
+      margin-top: 0.8rem;
+      min-height: 20px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 360px) {
+      header {
+        padding: 0.8rem 0.8rem;
+      }
+      .brand {
+        font-size: 0.95rem;
+      }
+      .top-middle-balance {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+      }
+      .btn-connect {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header>
+    <div class="brand">
+      <i class="fa-solid fa-bolt"></i> ChainFactor Version X
+    </div>
+
+    <div class="top-middle-balance">
+      Balance: <span id="balanceDisplay" class="balance-val">$0.00</span>
+    </div>
+
+    <button id="connectBtn" class="btn-connect">
+      <i class="fa-solid fa-wallet"></i>
+      <span id="walletText">Connect Wallet</span>
+    </button>
+  </header>
+
+  <!-- Main Trading Area -->
+  <main>
+    <div class="trading-widget">
+      <h2 class="widget-title">Cross-Exchange Arbitrage</h2>
+      <p class="widget-subtitle">Scan global liquidity pools for instant yield opportunities</p>
+
+      <!-- Animation Area -->
+      <div id="radarBox" class="radar-box">
+        <div class="radar-ring"></div>
+        <div class="radar-ring"></div>
+        <div class="radar-ring"></div>
+        <i id="radarIcon" class="fa-solid fa-magnifying-glass-dollar radar-icon"></i>
+      </div>
+
+      <!-- Result Card -->
+      <div class="opp-box">
+        <div id="oppExchange" class="opp-exchange">Status: Idle</div>
+        <div id="oppAmount" class="opp-amount">--</div>
+      </div>
+
+      <!-- Trade Progress Bar (Hidden by default) -->
+      <div id="progressContainer" class="progress-container hidden">
+        <div class="progress-header">
+          <span>Trade Execution Progress</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div class="progress-header" style="margin-top: 0.5rem; margin-bottom: 0;">
+          <span>Time Remaining:</span>
+          <span id="timeRemaining" class="time-remaining">--:--</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="actions">
+        <button id="searchBtn" class="btn-action btn-search">Search Opportunity</button>
+        <button id="cancelBtn" class="btn-action btn-cancel hidden">Cancel</button>
+      </div>
+
+      <div id="statusLog" class="status-text">Ready to scan network</div>
+    </div>
+  </main>
+
+  <!-- Module Script for Firebase JS SDK v10 -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // -------------------------------------------------------------
+    // 1. Firebase Configuration & Initialization
+    // -------------------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyCkJFncrVd3I95Xk8fJNF77aR4Y8EW2HSw",
+        authDomain: "chainfactor-7b1ab.firebaseapp.com",
+        databaseURL: "https://chainfactor-7b1ab-default-rtdb.firebaseio.com",
+        projectId: "chainfactor-7b1ab",
+        storageBucket: "chainfactor-7b1ab.firebasestorage.app",
+        messagingSenderId: "1021301434398",
+        appId: "1:1021301434398:web:0fd6ef60eba5d73af0260f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // -------------------------------------------------------------
+    // 2. Global Data & Exchanges List
+    // -------------------------------------------------------------
+    const EXCHANGES = [
+      "Binance (Tokyo)",
+      "Kraken (London)",
+      "Coinbase (New York)",
+      "OKX (Singapore)",
+      "Bybit (Dubai)",
+      "KuCoin (Hong Kong)",
+      "Bitfinex (Frankfurt)",
+      "Gate.io (Seoul)"
+    ];
+
+    let currentAddress = null;
+    let selectedOpportunity = null;
+    let currentNumericBalance = 0;
+    let tradeTimer = null;
+
+    // DOM Elements
+    const connectBtn = document.getElementById('connectBtn');
+    const walletText = document.getElementById('walletText');
+    const balanceDisplay = document.getElementById('balanceDisplay');
+    const searchBtn = document.getElementById('searchBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const radarBox = document.getElementById('radarBox');
+    const radarIcon = document.getElementById('radarIcon');
+    const oppExchange = document.getElementById('oppExchange');
+    const oppAmount = document.getElementById('oppAmount');
+    const statusLog = document.getElementById('statusLog');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressPercent = document.getElementById('progressPercent');
+    const timeRemaining = document.getElementById('timeRemaining');
+
+    // Helper: Truncate TRON Public Key
+    function shortenAddress(addr) {
+      if (!addr) return '';
+      return addr.slice(0, 6) + '...' + addr.slice(-4);
+    }
+
+    // Format milliseconds to MM:SS or HH:MM:SS
+    function formatTime(ms) {
+      if (ms <= 0) return "00:00";
+      const totalSeconds = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      if (hours > 0) {
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // -------------------------------------------------------------
+    // 3. Connect Wallet & Query Firebase
+    // -------------------------------------------------------------
+    connectBtn.addEventListener('click', async () => {
+      // Check if TRON provider (TronLink) exists
+      if (window.tronWeb && window.tronWeb.ready) {
+        currentAddress = window.tronWeb.defaultAddress.base58;
+      } else if (window.tronLink) {
+        const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
+        if (res.code === 200) {
+          currentAddress = window.tronWeb.defaultAddress.base58;
+        }
+      }
+
+      // Fallback demo address if TronLink is not installed
+      if (!currentAddress) {
+        currentAddress = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"; 
+        statusLog.textContent = "TronLink not detected. Used demo account.";
+      } else {
+        statusLog.textContent = "Wallet Connected!";
+      }
+
+      // Display brief public key
+      walletText.textContent = shortenAddress(currentAddress);
+
+      // Query Balance from Firebase at ChainFactor/1635333057/balance
+      await fetchBalanceFromFirebase();
+    });
+
+    async function fetchBalanceFromFirebase() {
+      statusLog.textContent = "Querying balance from Firebase...";
+      const balanceRef = ref(db, 'ChainFactor/1635333057/balance');
+
+      try {
+        const snapshot = await get(balanceRef);
+        if (snapshot.exists()) {
+          const rawVal = snapshot.val();
+          currentNumericBalance = parseFloat(rawVal) || 0;
+          balanceDisplay.textContent = `$${currentNumericBalance.toFixed(2)}`;
+          statusLog.textContent = "Balance updated from Firebase.";
+        } else {
+          statusLog.textContent = "No balance data found at specified path.";
+        }
+      } catch (error) {
+        console.error("Firebase query error:", error);
+        statusLog.textContent = "Failed to fetch balance from Firebase.";
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. Search & Arbitrage Simulation Logic
+    // -------------------------------------------------------------
+    searchBtn.addEventListener('click', () => {
+      if (searchBtn.dataset.state === 'execute') {
+        executeTrade();
+        return;
+      }
+
+      // Start Search
+      radarBox.classList.add('searching');
+      radarIcon.className = "fa-solid fa-arrows-spin fa-spin radar-icon";
+      searchBtn.disabled = true;
+      oppExchange.textContent = "Scanning Global DEX/CEX...";
+      oppAmount.textContent = "Searching...";
+      
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        const randomExchange = EXCHANGES[Math.floor(Math.random() * EXCHANGES.length)];
+        statusLog.textContent = `Connecting to ${randomExchange}...`;
+
+        if (step > 6) {
+          clearInterval(interval);
+          finishSearch();
+        }
+      }, 500);
+    });
+
+    function finishSearch() {
+      // Pick random exchange & amount (<= $0.50)
+      const chosenExchange = EXCHANGES[Math.floor(Math.random() * EXCHANGES.length)];
+      const randomGain = (Math.random() * 0.50).toFixed(4); // max $0.50
+
+      selectedOpportunity = {
+        exchange: chosenExchange,
+        profit: parseFloat(randomGain)
+      };
+
+      // Reset Animation
+      radarBox.classList.remove('searching');
+      radarIcon.className = "fa-solid fa-chart-line radar-icon";
+
+      // Update UI
+      oppExchange.textContent = `Opportunity Found @ ${chosenExchange}`;
+      oppAmount.textContent = `+$${randomGain}`;
+      statusLog.textContent = "Arbitrage opportunity locked!";
+
+      // Toggle Buttons
+      searchBtn.textContent = "Execute Trade";
+      searchBtn.classList.remove('btn-search');
+      searchBtn.classList.add('btn-execute');
+      searchBtn.dataset.state = 'execute';
+      searchBtn.disabled = false;
+
+      cancelBtn.classList.remove('hidden');
+    }
+
+    // Cancel Search Result
+    cancelBtn.addEventListener('click', resetSearchState);
+
+    function resetSearchState() {
+      selectedOpportunity = null;
+      radarBox.classList.remove('searching');
+      radarIcon.className = "fa-solid fa-magnifying-glass-dollar radar-icon";
+      
+      oppExchange.textContent = "Status: Idle";
+      oppAmount.textContent = "--";
+      statusLog.textContent = "Trade cancelled.";
+
+      searchBtn.textContent = "Search Opportunity";
+      searchBtn.classList.remove('btn-execute');
+      searchBtn.classList.add('btn-search');
+      delete searchBtn.dataset.state;
+      searchBtn.disabled = false;
+
+      cancelBtn.classList.add('hidden');
+      progressContainer.classList.add('hidden');
+    }
+
+    // -------------------------------------------------------------
+    // 5. Persistent Trade Countdown & Progress Bar
+    // -------------------------------------------------------------
+    function executeTrade() {
+      if (!selectedOpportunity) return;
+
+      // Random duration from 1 min (60000ms) to 1 hour (3600000ms)
+      const minDuration = 60 * 1000;
+      const maxDuration = 60 * 60 * 1000;
+      const duration = Math.floor(Math.random() * (maxDuration - minDuration + 1)) + minDuration;
+      const startTime = Date.now();
+
+      const tradeData = {
+        startTime: startTime,
+        duration: duration,
+        profit: selectedOpportunity.profit,
+        exchange: selectedOpportunity.exchange
+      };
+
+      localStorage.setItem('activeTrade', JSON.stringify(tradeData));
+      startTradeCountdown(tradeData);
+    }
+
+    function startTradeCountdown(tradeData) {
+      searchBtn.disabled = true;
+      searchBtn.textContent = "Trading in progress...";
+      cancelBtn.classList.add('hidden');
+      progressContainer.classList.remove('hidden');
+      radarBox.classList.add('searching');
+      radarIcon.className = "fa-solid fa-gear fa-spin radar-icon";
+
+      oppExchange.textContent = `Trading on ${tradeData.exchange}`;
+      oppAmount.textContent = `+$${tradeData.profit.toFixed(4)}`;
+
+      if (tradeTimer) clearInterval(tradeTimer);
+
+      tradeTimer = setInterval(() => {
+        const elapsed = Date.now() - tradeData.startTime;
+        const remaining = tradeData.duration - elapsed;
+
+        if (remaining <= 0) {
+          clearInterval(tradeTimer);
+          progressFill.style.width = '100%';
+          progressPercent.textContent = '100%';
+          timeRemaining.textContent = '00:00';
+          completeTrade(tradeData.profit);
+        } else {
+          const percent = Math.min(100, Math.max(0, (elapsed / tradeData.duration) * 100));
+          progressFill.style.width = `${percent.toFixed(1)}%`;
+          progressPercent.textContent = `${percent.toFixed(1)}%`;
+          timeRemaining.textContent = formatTime(remaining);
+          statusLog.textContent = `Arbitrage order running... (${formatTime(remaining)} left)`;
+        }
+      }, 1000);
+    }
+
+    async function completeTrade(profit) {
+      statusLog.textContent = "Finalizing trade & syncing with Firebase...";
+      
+      // Ensure current numeric balance is updated
+      if (currentNumericBalance === 0) {
+        await fetchBalanceFromFirebase();
+      }
+
+      const newBalance = currentNumericBalance + profit;
+
+      try {
+        const balanceRef = ref(db, 'ChainFactor/1635333057/balance');
+        await set(balanceRef, newBalance.toFixed(4));
+
+        currentNumericBalance = newBalance;
+        balanceDisplay.textContent = `$${currentNumericBalance.toFixed(2)}`;
+
+        alert(`Trade complete! Profit +$${profit.toFixed(4)} added to balance.`);
+        localStorage.removeItem('activeTrade');
+        resetSearchState();
+      } catch (error) {
+        console.error("Firebase update error:", error);
+        statusLog.textContent = "Error updating Firebase balance!";
+        searchBtn.disabled = false;
+      }
+    }
+
+    // Check if an active trade exists on startup/page refresh
+    function checkActiveTrade() {
+      const savedTrade = localStorage.getItem('activeTrade');
+      if (savedTrade) {
+        try {
+          const tradeData = JSON.parse(savedTrade);
+          const elapsed = Date.now() - tradeData.startTime;
+          
+          if (elapsed >= tradeData.duration) {
+            completeTrade(tradeData.profit);
+          } else {
+            startTradeCountdown(tradeData);
+          }
+        } catch (e) {
+          localStorage.removeItem('activeTrade');
+        }
+      }
+    }
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      checkActiveTrade();
+    });
+  </script>
+</body>
+</html>
