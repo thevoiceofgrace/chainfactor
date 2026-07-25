@@ -313,6 +313,87 @@
       display: none !important;
     }
 
+    /* Custom In-App Notification Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 1rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-card {
+      background: rgba(18, 22, 40, 0.95);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.8rem;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(16, 185, 129, 0.2);
+      transform: scale(0.9);
+      animation: popIn 0.3s forwards ease-out;
+    }
+
+    .modal-icon {
+      font-size: 3rem;
+      color: var(--success);
+      margin-bottom: 0.8rem;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.4rem;
+      line-height: 1.4;
+    }
+
+    .modal-body span {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .btn-modal-close {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-modal-close:hover {
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes popIn {
+      to { transform: scale(1); }
+    }
+
     @media (max-width: 360px) {
       header {
         padding: 0.8rem 0.8rem;
@@ -394,6 +475,16 @@
     </div>
   </main>
 
+  <!-- Custom In-App Notification Modal -->
+  <div id="customModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <i class="fa-solid fa-circle-check modal-icon"></i>
+      <h3 class="modal-title">Trade Successful</h3>
+      <p class="modal-body">Arbitrage execution completed successfully. Profit of <span id="modalProfitAmount">+$0.0000</span> has been added to your balance.</p>
+      <button id="modalCloseBtn" class="btn-modal-close">Claim Profit</button>
+    </div>
+  </div>
+
   <!-- Module Script for Firebase JS SDK v10 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -449,6 +540,11 @@
     const progressFill = document.getElementById('progressFill');
     const progressPercent = document.getElementById('progressPercent');
     const timeRemaining = document.getElementById('timeRemaining');
+    
+    // Modal DOM Elements
+    const customModal = document.getElementById('customModal');
+    const modalProfitAmount = document.getElementById('modalProfitAmount');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
 
     // Helper: Truncate TRON Public Key
     function shortenAddress(addr) {
@@ -469,6 +565,16 @@
       }
       return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
+
+    // Modal Helpers
+    function showCustomModal(profit) {
+      modalProfitAmount.textContent = `+$${profit.toFixed(4)}`;
+      customModal.classList.remove('hidden');
+    }
+
+    modalCloseBtn.addEventListener('click', () => {
+      customModal.classList.add('hidden');
+    });
 
     // -------------------------------------------------------------
     // 3. Connect Wallet & Query Firebase
@@ -687,7 +793,8 @@
         currentNumericBalance = newBalance;
         balanceDisplay.textContent = `$${currentNumericBalance.toFixed(2)}`;
 
-        alert(`Trade complete! Profit +$${profit.toFixed(4)} added to balance.`);
+        // Show Custom In-App Notification Modal instead of browser alert
+        showCustomModal(profit);
         resetSearchState();
       } catch (error) {
         console.error("update error:", error);
