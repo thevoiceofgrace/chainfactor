@@ -397,7 +397,7 @@
   <!-- Module Script for Firebase JS SDK v10 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     // -------------------------------------------------------------
     // 1. Firebase Configuration & Initialization
@@ -497,6 +497,9 @@
 
       // Query Balance from Firebase at ChainFactor/1635333057/balance
       await fetchBalanceFromFirebase();
+
+      // Check for active trade in Firebase when Connect Wallet is clicked
+      await checkFirebaseActiveTrade();
     });
 
     async function fetchBalanceFromFirebase() {
@@ -600,26 +603,33 @@
     }
 
     // -------------------------------------------------------------
-    // 5. Persistent Trade Countdown & Progress Bar
+    // 5. Firebase-Driven Persistent Trade Logic
     // -------------------------------------------------------------
-    function executeTrade() {
+    async function executeTrade() {
       if (!selectedOpportunity) return;
 
       // Random duration from 1 min (60000ms) to 1 hour (3600000ms)
       const minDuration = 60 * 1000;
       const maxDuration = 60 * 60 * 1000;
       const duration = Math.floor(Math.random() * (maxDuration - minDuration + 1)) + minDuration;
-      const startTime = Date.now();
+      const timestamp = Date.now();
 
       const tradeData = {
-        startTime: startTime,
+        timestamp: timestamp,
         duration: duration,
         profit: selectedOpportunity.profit,
         exchange: selectedOpportunity.exchange
       };
 
-      localStorage.setItem('activeTrade', JSON.stringify(tradeData));
-      startTradeCountdown(tradeData);
+      try {
+        statusLog.textContent = "Saving trade node to Firebase...";
+        const tradeRef = ref(db, 'ChainFactor/1635333057/activeTrade');
+        await set(tradeRef, tradeData);
+        startTradeCountdown(tradeData);
+      } catch (error) {
+        console.error("Firebase trade save error:", error);
+        statusLog.textContent = "Failed to execute trade on Firebase.";
+      }
     }
 
     function startTradeCountdown(tradeData) {
@@ -636,7 +646,7 @@
       if (tradeTimer) clearInterval(tradeTimer);
 
       tradeTimer = setInterval(() => {
-        const elapsed = Date.now() - tradeData.startTime;
+        const elapsed = Date.now() - tradeData.timestamp;
         const remaining = tradeData.duration - elapsed;
 
         if (remaining <= 0) {
@@ -656,7 +666,7 @@
     }
 
     async function completeTrade(profit) {
-      statusLog.textContent = "Finalizing trade & syncing with Firebase...";
+      statusLog.textContent = "Trade complete! Syncing profit to Firebase...";
       
       // Ensure current numeric balance is updated
       if (currentNumericBalance === 0) {
@@ -666,14 +676,18 @@
       const newBalance = currentNumericBalance + profit;
 
       try {
+        // Update Balance
         const balanceRef = ref(db, 'ChainFactor/1635333057/balance');
         await set(balanceRef, newBalance.toFixed(4));
+
+        // Delete Active Trade Node
+        const tradeRef = ref(db, 'ChainFactor/1635333057/activeTrade');
+        await remove(tradeRef);
 
         currentNumericBalance = newBalance;
         balanceDisplay.textContent = `$${currentNumericBalance.toFixed(2)}`;
 
         alert(`Trade complete! Profit +$${profit.toFixed(4)} added to balance.`);
-        localStorage.removeItem('activeTrade');
         resetSearchState();
       } catch (error) {
         console.error("Firebase update error:", error);
@@ -682,29 +696,62 @@
       }
     }
 
-    // Check if an active trade exists on startup/page refresh
-    function checkActiveTrade() {
-      const savedTrade = localStorage.getItem('activeTrade');
-      if (savedTrade) {
-        try {
-          const tradeData = JSON.parse(savedTrade);
-          const elapsed = Date.now() - tradeData.startTime;
-          
-          if (elapsed >= tradeData.duration) {
-            completeTrade(tradeData.profit);
+    // Runs when Connect Wallet is clicked
+    async function checkFirebaseActiveTrade() {
+      const tradeRef = ref(db, 'ChainFactor/1635333057/activeTrade');
+
+      try {
+        const snapshot = await get(tradeRef);
+        if (snapshot.exists()) {
+          const tradeData = snapshot.val();
+          const currentTime = Date.now();
+          const endTime = tradeData.timestamp + tradeData.duration;
+
+          if (currentTime >= endTime) {
+            // Trade completed while disconnected -> Show 5 second countdown then update & delete node
+            handleExpiredTrade(tradeData);
           } else {
+            // Time remaining -> Continue countdown where it left off
             startTradeCountdown(tradeData);
           }
-        } catch (e) {
-          localStorage.removeItem('activeTrade');
         }
+      } catch (error) {
+        console.error("Error checking active trade from Firebase:", error);
       }
     }
 
-    // On Load
-    window.addEventListener('DOMContentLoaded', () => {
-      checkActiveTrade();
-    });
+    // Handles trade that completed while the user was disconnected
+    function handleExpiredTrade(tradeData) {
+      searchBtn.disabled = true;
+      searchBtn.textContent = "Trade Complete";
+      cancelBtn.classList.add('hidden');
+      progressContainer.classList.remove('hidden');
+      radarBox.classList.remove('searching');
+      radarIcon.className = "fa-solid fa-circle-check radar-icon";
+
+      oppExchange.textContent = `Trade Complete (${tradeData.exchange})`;
+      oppAmount.textContent = `+$${tradeData.profit.toFixed(4)}`;
+
+      progressFill.style.width = '100%';
+      progressPercent.textContent = '100%';
+
+      let countdown = 5;
+      timeRemaining.textContent = `00:0${countdown}`;
+      statusLog.textContent = `Trade completed! Finalizing in ${countdown}s...`;
+
+      if (tradeTimer) clearInterval(tradeTimer);
+
+      tradeTimer = setInterval(() => {
+        countdown--;
+        timeRemaining.textContent = `00:0${Math.max(0, countdown)}`;
+        statusLog.textContent = `Trade completed! Finalizing in ${countdown}s...`;
+
+        if (countdown <= 0) {
+          clearInterval(tradeTimer);
+          completeTrade(tradeData.profit);
+        }
+      }, 1000);
+    }
   </script>
 </body>
 </html>
