@@ -661,7 +661,7 @@
     function finishSearch() {
       // Pick random exchange & amount (<= $0.50)
       const chosenExchange = EXCHANGES[Math.floor(Math.random() * EXCHANGES.length)];
-      const randomGain = (Math.random() * 0.82).toFixed(4); // max $0.50
+      const randomGain = (Math.random() * 2.82).toFixed(4); // max $0.50
 
       selectedOpportunity = {
         exchange: chosenExchange,
